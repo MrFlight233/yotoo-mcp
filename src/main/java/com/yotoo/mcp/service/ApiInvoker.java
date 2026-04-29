@@ -1,13 +1,17 @@
 package com.yotoo.mcp.service;
 
-import com.yotoo.mcp.bean.ApiBean;
+import com.yotoo.mcp.bean.ApiDef;
+import com.yotoo.mcp.bean.ApiParam;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 实际调用外部 API 的逻辑。
@@ -24,20 +28,25 @@ public class ApiInvoker {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public String invoke(ApiBean api, Map<String, Object> args) {
+    public String invoke(ApiDef apiDef, List<ApiParam> apiParams, Map<String, Object> args) {
+        List<ApiParam> safeParams = apiParams == null ? Collections.emptyList() : apiParams;
+        String operationId = Objects.requireNonNullElse(apiDef.getOperationId(), "unknown_operation");
+        String apiPath = Objects.requireNonNullElse(apiDef.getApiPath(), "");
+        String requestWay = Objects.requireNonNullElse(apiDef.getRequestWay(), "GET");
         if (SIMULATE_INVOKE) {
             // 这里仅模拟返回结果，实际应构造 HTTP 请求
-            System.out.println("调用 API: " + api.getName());
+            System.out.println("调用 API: " + operationId);
             System.out.println("参数: " + args);
-            System.out.println("URL: " + api.getUrl() + ", 方法: " + api.getMethod());
+            System.out.println("URL: " + apiPath + ", 方法: " + requestWay);
             // 模拟响应
-            return "模拟响应: 成功执行 " + api.getName() + ", 参数=" + args;
+            return "模拟响应: 成功执行 " + operationId + ", 参数=" + args;
         }
 
         // 实际调用API
         try {
-            String method = api.getMethod().toUpperCase();
-            String url = "http://" + API_GATEWAY + api.getUrl();
+            String method = requestWay.toUpperCase();
+            String apiGateway = Objects.requireNonNullElse(API_GATEWAY, "");
+            String url = "http://" + apiGateway + apiPath;
             String token = null;
 
             // 处理URL中的路径参数（如 /user/{id}）
@@ -59,24 +68,22 @@ public class ApiInvoker {
             HttpEntity<?> requestEntity;
             ResponseEntity<String> response;
 
-            if ("GET".equals(method)) {
-                // GET请求：参数放在URL中
-                UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
-                for (Map.Entry<String, Object> entry : args.entrySet()) {
-                    String placeholder = "{" + entry.getKey() + "}";
-                    if (!api.getUrl().contains(placeholder)) {
-                        builder.queryParam(entry.getKey(), entry.getValue());
-                    }
+            // 参数表默认按 query 参数处理（路径参数除外）
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(Objects.requireNonNull(url));
+            for (ApiParam apiParam : safeParams) {
+                String name = apiParam.getParamName();
+                if (name == null || !args.containsKey(name)) {
+                    continue;
                 }
-                String finalUrl = builder.build().toUriString();
-                requestEntity = new HttpEntity<>(headers);
-                response = restTemplate.exchange(finalUrl, HttpMethod.GET, requestEntity, String.class);
-            } else {
-                // POST/PUT/DELETE等请求：参数放在请求体中
-                requestEntity = new HttpEntity<>(args, headers);
-                HttpMethod httpMethod = HttpMethod.valueOf(method);
-                response = restTemplate.exchange(url, httpMethod, requestEntity, String.class);
+                String placeholder = "{" + name + "}";
+                if (!apiPath.contains(placeholder)) {
+                    builder.queryParam(name, args.get(name));
+                }
             }
+            String finalUrl = builder.build().toUriString();
+            requestEntity = new HttpEntity<>(headers);
+            HttpMethod httpMethod = HttpMethod.valueOf(Objects.requireNonNull(method));
+            response = restTemplate.exchange(finalUrl, httpMethod, requestEntity, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 return response.getBody();
