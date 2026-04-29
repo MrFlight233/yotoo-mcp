@@ -76,7 +76,7 @@ public class DynamicToolCallbackProvider implements ToolCallbackProvider {
      * 为单个 ApiDef 构建工具回调。
      */
     private ToolCallback buildCustomTool(ApiDef apiDef) {
-        List<ApiParam> apiParams = apiBeanCache.apiParamMap.getOrDefault(apiDef.getApiId(), Collections.emptyList());
+        List<ApiParam> apiParams = Objects.requireNonNullElse(apiDef.getApiParams(), Collections.emptyList());
         String operationId = Objects.requireNonNullElse(apiDef.getOperationId(), "unknown_operation");
         String summary = Objects.requireNonNullElse(apiDef.getSummary(), "");
         // 1. 构建输入参数的 JSON Schema

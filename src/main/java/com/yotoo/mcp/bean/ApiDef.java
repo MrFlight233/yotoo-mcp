@@ -1,6 +1,7 @@
 package com.yotoo.mcp.bean;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import lombok.Data;
 
@@ -37,4 +38,6 @@ public class ApiDef {
 	private String roleIds; //角色IDS
 	private Integer releaseStatus; //上架状态（0草稿；1上架）
 	private Long usedCount; //调用次数
+
+	private List<ApiParam> apiParams; //API参数列表
 }

@@ -22,3 +22,11 @@ spring:
 
 api:
   gateway: 192.168.31.132:8080
+  cache:
+    db:
+      url: ${API_CACHE_DB_URL:jdbc:mysql://192.168.31.162:3306/jservices_agent?useSSL=false&useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2b8}
+      username: ${API_CACHE_DB_USERNAME:jservices}
+      password: ${API_CACHE_DB_PASSWORD:jservices}
+    refresh:
+      enabled: ${API_CACHE_REFRESH_ENABLED:true}
+      cron: ${API_CACHE_REFRESH_CRON:0 */30 * * * *}

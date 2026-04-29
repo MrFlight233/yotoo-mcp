@@ -1,6 +1,6 @@
 package com.yotoo.mcp.controller;
 
-import com.yotoo.mcp.service.McpToolService;
+import com.yotoo.mcp.service.ApiCacheRefreshService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.*;
 public class TestController {
     Logger logger = LoggerFactory.getLogger(TestController.class);
 
-    private final McpToolService mcpToolService;
+    private final ApiCacheRefreshService apiCacheRefreshService;
 
-    public TestController(McpToolService mcpToolService) {
-        this.mcpToolService = mcpToolService;
+    public TestController(ApiCacheRefreshService apiCacheRefreshService) {
+        this.apiCacheRefreshService = apiCacheRefreshService;
     }
 
     /**
@@ -24,8 +24,7 @@ public class TestController {
      */
     @GetMapping("/refresh/tools")
     public String refreshTools() {
-        mcpToolService.refreshTools();
-        return "success";
+        return apiCacheRefreshService.manualRefresh();
     }
 
     /**
