@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 10087
 
 spring:
   application:
@@ -30,3 +30,12 @@ api:
     refresh:
       enabled: ${API_CACHE_REFRESH_ENABLED:true}
       cron: ${API_CACHE_REFRESH_CRON:0 */30 * * * *}
+
+dify:
+  mcp:
+    provider-id: ${DIFY_MCP_PROVIDER_ID:6ed8ff7a-0569-47c3-a568-68b19bf50cc1}
+    db:
+      url: ${DIFY_MCP_DB_URL:jdbc:postgresql://192.168.31.21:5433/dify}
+      username: ${DIFY_MCP_DB_USERNAME:postgres}
+      password: ${DIFY_MCP_DB_PASSWORD:difyai123456}
+      table: ${DIFY_MCP_DB_TABLE:tool_mcp_providers}

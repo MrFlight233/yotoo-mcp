@@ -18,10 +18,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -78,32 +81,45 @@ public class DynamicToolCallbackProvider implements ToolCallbackProvider {
     private ToolCallback buildCustomTool(ApiDef apiDef) {
         List<ApiParam> apiParams = Objects.requireNonNullElse(apiDef.getApiParams(), Collections.emptyList());
         String operationId = Objects.requireNonNullElse(apiDef.getOperationId(), "unknown_operation");
-        String summary = Objects.requireNonNullElse(apiDef.getSummary(), "");
+        String summary = buildToolDescription(apiDef);
         // 1. 构建输入参数的 JSON Schema
         ObjectNode schema = objectMapper.createObjectNode();
         schema.put("type", "object");
+        schema.put("title", Objects.requireNonNullElse(apiDef.getApiName(), operationId));
+        if (apiDef.getSummary() != null) {
+            schema.put("description", apiDef.getSummary());
+        }
         ObjectNode properties = schema.putObject("properties");
 
         // 收集必填参数名称
-        List<String> required = apiParams.stream()
-                .filter(param -> Boolean.parseBoolean(param.getRequired()))
+        Set<String> required = apiParams.stream()
+                .filter(param -> isRequired(param.getRequired()))
                 .map(ApiParam::getParamName)
-                .toList();
+                .filter(Objects::nonNull)
+                .filter(name -> !name.isBlank())
+                .collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll);
 
         // 填充 properties
-        for (ApiParam param : apiParams) {
-            ObjectNode prop = properties.putObject(param.getParamName());
-            prop.put("type", param.getParamDataType());
-            if (param.getParamDescription() != null) {
-                prop.put("description", param.getParamDescription());
-            }
-        }
+        apiParams.stream()
+                .filter(param -> param.getParamName() != null && !param.getParamName().isBlank())
+                .forEach(param -> {
+                    ObjectNode prop = properties.putObject(param.getParamName());
+                    prop.put("type", normalizeJsonType(param.getParamDataType()));
+                    if (param.getParamDescription() != null) {
+                        prop.put("description", param.getParamDescription());
+                    }
+                    if (param.getParamEnum() != null && !param.getParamEnum().isBlank()) {
+                        ArrayNode enumArray = prop.putArray("enum");
+                        Arrays.stream(param.getParamEnum().split(","))
+                                .map(String::trim)
+                                .filter(value -> !value.isEmpty())
+                                .forEach(enumArray::add);
+                    }
+                });
 
-        // 设置 required 数组（如果有必填参数）
-        if (!required.isEmpty()) {
-            ArrayNode requiredArray = schema.putArray("required");
-            required.forEach(requiredArray::add); // 逐个添加字符串
-        }
+        // 设置 required 数组（保持与落库结构一致，即使为空也输出）
+        ArrayNode requiredArray = schema.putArray("required");
+        required.forEach(requiredArray::add);
 
         // 将 ObjectNode 转换为 JSON 字符串
         String schemaJson = "{}";
@@ -124,5 +140,75 @@ public class DynamicToolCallbackProvider implements ToolCallbackProvider {
                 .inputSchema(Objects.requireNonNull(schemaJson))          // 传入 JSON 字符串
                 .inputType(Map.class)             // 输入类型为 Map
                 .build();
+    }
+
+    private boolean isRequired(String required) {
+        if (required == null) {
+            return false;
+        }
+        String normalized = required.trim().toLowerCase();
+        return "true".equals(normalized)
+                || "1".equals(normalized)
+                || "yes".equals(normalized)
+                || "y".equals(normalized);
+    }
+
+    private String normalizeJsonType(String type) {
+        if (type == null || type.isBlank()) {
+            return "string";
+        }
+        return switch (type.toLowerCase()) {
+            case "string", "number", "integer", "boolean", "array", "object" -> type.toLowerCase();
+            default -> "string";
+        };
+    }
+
+    private String buildToolDescription(ApiDef apiDef) {
+        String summary = Objects.requireNonNullElse(apiDef.getSummary(), "");
+        String apiPath = Objects.requireNonNullElse(apiDef.getApiPath(), "");
+        String requestWay = Objects.requireNonNullElse(apiDef.getRequestWay(), "");
+        List<ApiParam> apiParams = Objects.requireNonNullElse(apiDef.getApiParams(), Collections.emptyList());
+        Integer authType = apiDef.getAuthType();
+        Integer apiType = apiDef.getApiType();
+        String apiName = Objects.requireNonNullElse(apiDef.getApiName(), "");
+
+        StringBuilder builder = new StringBuilder(summary);
+        if (!apiName.isBlank()) {
+            builder.append("\n名称: ").append(apiName);
+        }
+        if (!requestWay.isBlank() || !apiPath.isBlank()) {
+            builder.append("\n请求: ").append(requestWay).append(" ").append(apiPath);
+        }
+        if (authType != null) {
+            builder.append("\n鉴权类型: ").append(authType);
+        }
+        if (apiType != null) {
+            builder.append("\n接口类型: ").append(apiType);
+        }
+        if (!apiParams.isEmpty()) {
+            builder.append("\n参数:");
+            for (ApiParam param : apiParams) {
+                String paramName = Objects.requireNonNullElse(param.getParamName(), "");
+                if (paramName.isBlank()) {
+                    continue;
+                }
+                String paramDesc = Objects.requireNonNullElse(param.getParamDescription(), "");
+                String testValue = Objects.requireNonNullElse(param.getTestValue(), "");
+                String dataType = normalizeJsonType(param.getParamDataType());
+                boolean required = isRequired(param.getRequired());
+
+                builder.append("\n- ")
+                        .append(paramName)
+                        .append(" | 类型: ").append(dataType)
+                        .append(" | 必填: ").append(required ? "是" : "否");
+                if (!paramDesc.isBlank()) {
+                    builder.append(" | 描述: ").append(paramDesc);
+                }
+                if (!testValue.isBlank()) {
+                    builder.append(" | 测试值: ").append(testValue);
+                }
+            }
+        }
+        return builder.toString();
     }
 }

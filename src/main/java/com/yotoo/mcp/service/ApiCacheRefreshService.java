@@ -37,7 +37,8 @@ public class ApiCacheRefreshService {
 
     private String refreshAndNotify(String source) {
         boolean loadedFromDb = apiBeanCache.refreshCache();
-        mcpToolService.refreshTools();
+        // mcpToolService.refreshTools();
+        mcpToolService.updateDifyMcpTools();
         String result = loadedFromDb ? "mysql" : "mock";
         logger.info("缓存刷新完成 source={}, dataSource={}", source, result);
         return "refresh success, dataSource=" + result;
