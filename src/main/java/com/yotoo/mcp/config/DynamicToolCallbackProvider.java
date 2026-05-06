@@ -209,6 +209,10 @@ public class DynamicToolCallbackProvider implements ToolCallbackProvider {
                 }
             }
         }
+        if (!"GET".equalsIgnoreCase(requestWay)) {
+            builder.append("\n\n【行为说明】本工具不会发起下游 HTTP，仅返回 JSON Schema（含当前参数 value）供界面渲染表单；实际提交由页面/网关完成。");
+            builder.append("\n【输出约定】若返回 JSON 的 uiKind 为 \"json_schema_form\"：请勿向用户宣称业务已最终完成或已提交，可一句提示用户在界面中继续，或保持极简、不重复朗读工具 JSON。");
+        }
         return builder.toString();
     }
 }
