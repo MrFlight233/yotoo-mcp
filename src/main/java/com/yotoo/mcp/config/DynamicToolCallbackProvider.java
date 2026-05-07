@@ -8,6 +8,7 @@ import com.yotoo.mcp.bean.ApiDef;
 import com.yotoo.mcp.bean.ApiParam;
 import com.yotoo.mcp.cache.ApiBeanCache;
 import com.yotoo.mcp.service.ApiInvoker;
+import com.yotoo.mcp.util.ParamDataTypeSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.ToolCallback;
@@ -104,7 +105,15 @@ public class DynamicToolCallbackProvider implements ToolCallbackProvider {
                 .filter(param -> param.getParamName() != null && !param.getParamName().isBlank())
                 .forEach(param -> {
                     ObjectNode prop = properties.putObject(param.getParamName());
-                    prop.put("type", normalizeJsonType(param.getParamDataType()));
+                    prop.put("type", ParamDataTypeSchema.jsonSchemaType(param.getParamDataType()));
+                    String schemaFormat = ParamDataTypeSchema.jsonSchemaFormat(param.getParamDataType());
+                    if (schemaFormat != null) {
+                        prop.put("format", schemaFormat);
+                    }
+                    String schemaPattern = ParamDataTypeSchema.jsonSchemaPattern(param.getParamDataType());
+                    if (schemaPattern != null) {
+                        prop.put("pattern", schemaPattern);
+                    }
                     if (param.getParamDescription() != null) {
                         prop.put("description", param.getParamDescription());
                     }
@@ -153,16 +162,6 @@ public class DynamicToolCallbackProvider implements ToolCallbackProvider {
                 || "y".equals(normalized);
     }
 
-    private String normalizeJsonType(String type) {
-        if (type == null || type.isBlank()) {
-            return "string";
-        }
-        return switch (type.toLowerCase()) {
-            case "string", "number", "integer", "boolean", "array", "object" -> type.toLowerCase();
-            default -> "string";
-        };
-    }
-
     private String buildToolDescription(ApiDef apiDef) {
         String summary = Objects.requireNonNullElse(apiDef.getSummary(), "");
         String apiPath = Objects.requireNonNullElse(apiDef.getApiPath(), "");
@@ -194,7 +193,7 @@ public class DynamicToolCallbackProvider implements ToolCallbackProvider {
                 }
                 String paramDesc = Objects.requireNonNullElse(param.getParamDescription(), "");
                 String testValue = Objects.requireNonNullElse(param.getTestValue(), "");
-                String dataType = normalizeJsonType(param.getParamDataType());
+                String dataType = ParamDataTypeSchema.displayTypeLabel(param.getParamDataType());
                 boolean required = isRequired(param.getRequired());
 
                 builder.append("\n- ")

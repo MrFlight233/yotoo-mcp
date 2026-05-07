@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yotoo.mcp.bean.ApiDef;
 import com.yotoo.mcp.bean.ApiParam;
 import com.yotoo.mcp.cache.ApiBeanCache;
+import com.yotoo.mcp.util.ParamDataTypeSchema;
 import io.modelcontextprotocol.server.McpSyncServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,7 +227,15 @@ public class McpToolService {
             }
 
             Map<String, Object> property = new LinkedHashMap<>();
-            property.put("type", normalizeJsonType(param.getParamDataType()));
+            property.put("type", ParamDataTypeSchema.jsonSchemaType(param.getParamDataType()));
+            String schemaFormat = ParamDataTypeSchema.jsonSchemaFormat(param.getParamDataType());
+            if (schemaFormat != null) {
+                property.put("format", schemaFormat);
+            }
+            String schemaPattern = ParamDataTypeSchema.jsonSchemaPattern(param.getParamDataType());
+            if (schemaPattern != null) {
+                property.put("pattern", schemaPattern);
+            }
             if (param.getParamDescription() != null && !param.getParamDescription().isBlank()) {
                 property.put("description", param.getParamDescription());
             }
@@ -276,7 +285,7 @@ public class McpToolService {
                 }
                 String paramDesc = Objects.requireNonNullElse(param.getParamDescription(), "");
                 String testValue = Objects.requireNonNullElse(param.getTestValue(), "");
-                String dataType = normalizeJsonType(param.getParamDataType());
+                String dataType = ParamDataTypeSchema.displayTypeLabel(param.getParamDataType());
                 boolean required = isRequired(param.getRequired());
 
                 builder.append("\n- ")
@@ -312,16 +321,4 @@ public class McpToolService {
                 || "y".equals(normalized);
     }
 
-    /**
-     * 将参数类型归一化到 JSON Schema 支持的基础类型集合。
-     */
-    private String normalizeJsonType(String type) {
-        if (type == null || type.isBlank()) {
-            return "string";
-        }
-        return switch (type.toLowerCase()) {
-            case "string", "number", "integer", "boolean", "array", "object" -> type.toLowerCase();
-            default -> "string";
-        };
-    }
 }

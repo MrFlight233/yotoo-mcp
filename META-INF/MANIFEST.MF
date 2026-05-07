@@ -1,0 +1,40 @@
+Manifest-Version: 1.0
+Created-By: 17.0.17 (Eclipse Adoptium)
+Build-Jdk-Spec: 17
+Implementation-Title: mcp-core
+Implementation-Version: 0.17.0
+Automatic-Module-Name: io.modelcontextprotocol.sdk.mcp-core
+Bnd-LastModified: 1764859837044
+Bundle-Description: Core classes of the Java SDK implementation of the M
+ odel Context Protocol, enabling seamless integration with language mode
+ ls and AI tools
+Bundle-DocURL: https://github.com/modelcontextprotocol/java-sdk
+Bundle-License: "MIT License";link="http://www.opensource.org/licenses/m
+ it-license.php"
+Bundle-ManifestVersion: 2
+Bundle-Name: Bundle io.modelcontextprotocol.sdk : mcp-core
+Bundle-SCM: url="https://github.com/modelcontextprotocol/java-sdk",conne
+ ction="git://github.com/modelcontextprotocol/java-sdk.git",developer-co
+ nnection="git@github.com/modelcontextprotocol/java-sdk.git",tag=HEAD
+Bundle-SymbolicName: io.modelcontextprotocol.sdk.mcp-core
+Bundle-Vendor: Anthropic
+Bundle-Version: 0.17.0
+Export-Package: io.modelcontextprotocol.client;version="0.17.0",io.model
+ contextprotocol.client.transport;version="0.17.0",io.modelcontextprotoc
+ ol.client.transport.customizer;version="0.17.0",io.modelcontextprotocol
+ .common;version="0.17.0",io.modelcontextprotocol.json;version="0.17.0",
+ io.modelcontextprotocol.json.schema;version="0.17.0",io.modelcontextpro
+ tocol.server;version="0.17.0",io.modelcontextprotocol.server.transport;
+ version="0.17.0",io.modelcontextprotocol.spec;version="0.17.0",io.model
+ contextprotocol.util;version="0.17.0"
+Import-Package: jakarta.servlet;resolution:=optional;version="[6.1,7)",j
+ akarta.servlet.annotation;resolution:=optional;version="[6.1,7)",jakart
+ a.servlet.http;resolution:=optional;version="[6.1,7)",com.fasterxml.jac
+ kson.annotation;version="[2.19,3)",org.reactivestreams;version="[1.0,2)
+ ",org.slf4j;version="[2.0,3)",reactor.core;version="[3.7,4)",reactor.co
+ re.publisher;version="[3.7,4)",reactor.core.scheduler;version="[3.7,4)"
+ ,reactor.util.annotation;version="[3.7,4)",reactor.util.context;version
+ ="[3.7,4)",reactor.util.function;version="[3.7,4)"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=17))"
+Tool: Bnd-7.1.0.202411251545
+

@@ -14,7 +14,7 @@ public class ApiParam {
 	private Integer apiEdition; //API版本（只查询值为2的数据）
 	private Integer apiId; //API主键
 	private String paramName; //参数名
-	private String paramDataType; //类型（string；number；integer；boolean；array；object；）
+	private String paramDataType; //类型（string；number；integer；boolean；array；object；date；time；datetime；）
 	private String required; //是否必填（true；false；）
 	private String paramDescription; //参数描述
 	private String paramEnum; //枚举值（“,”间隔）

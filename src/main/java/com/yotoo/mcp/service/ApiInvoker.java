@@ -3,6 +3,7 @@ package com.yotoo.mcp.service;
 import com.yotoo.mcp.bean.ApiDef;
 import com.yotoo.mcp.bean.ApiParam;
 import com.yotoo.mcp.constant.ToolResponseUiKind;
+import com.yotoo.mcp.util.ParamDataTypeSchema;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -311,7 +312,15 @@ public class ApiInvoker {
                 requiredFields.add(paramName);
             }
             Map<String, Object> property = new LinkedHashMap<>();
-            property.put("type", normalizeJsonType(param.getParamDataType()));
+            property.put("type", ParamDataTypeSchema.jsonSchemaType(param.getParamDataType()));
+            String schemaFormat = ParamDataTypeSchema.jsonSchemaFormat(param.getParamDataType());
+            if (schemaFormat != null) {
+                property.put("format", schemaFormat);
+            }
+            String schemaPattern = ParamDataTypeSchema.jsonSchemaPattern(param.getParamDataType());
+            if (schemaPattern != null) {
+                property.put("pattern", schemaPattern);
+            }
             if (param.getParamDescription() != null && !param.getParamDescription().isBlank()) {
                 property.put("description", param.getParamDescription());
             }
@@ -352,17 +361,6 @@ public class ApiInvoker {
                 || "1".equals(normalized)
                 || "yes".equals(normalized)
                 || "y".equals(normalized);
-    }
-
-    /** 将业务侧类型名映射为 JSON Schema 标准 type；无法识别时退回 string。 */
-    private String normalizeJsonType(String type) {
-        if (type == null || type.isBlank()) {
-            return "string";
-        }
-        return switch (type.toLowerCase()) {
-            case "string", "number", "integer", "boolean", "array", "object" -> type.toLowerCase();
-            default -> "string";
-        };
     }
 
 }
