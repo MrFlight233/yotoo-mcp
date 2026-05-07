@@ -11,7 +11,10 @@ spring:
         name: yotoo-mcp-server   # 给你的服务器起个名字
         version: 1.0.0
         type: SYNC                     # 使用同步服务器，与你的代码一致
-        sse-message-endpoint: /mcp/message  # 客户端发送消息的端点
+        # SSE 已弃用；Streamable HTTP 为 MCP 规范推荐传输（单端点 POST/GET，可选 SSE 流式下行）
+        protocol: STREAMABLE
+        streamable-http:
+          mcp-endpoint: /mcp          # 客户端基址 + 此路径，例如 http://127.0.0.1:10087/mcp
         # 确保工具功能是开启的
         capabilities:
           tool: true
