@@ -227,7 +227,7 @@ public class McpToolService {
             }
 
             Map<String, Object> property = new LinkedHashMap<>();
-            property.put("type", ParamDataTypeSchema.jsonSchemaType(param.getParamDataType()));
+            property.put("type", ParamDataTypeSchema.toolType(param.getParamDataType()));
             String schemaFormat = ParamDataTypeSchema.jsonSchemaFormat(param.getParamDataType());
             if (schemaFormat != null) {
                 property.put("format", schemaFormat);

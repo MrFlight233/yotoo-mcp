@@ -105,7 +105,7 @@ public class DynamicToolCallbackProvider implements ToolCallbackProvider {
                 .filter(param -> param.getParamName() != null && !param.getParamName().isBlank())
                 .forEach(param -> {
                     ObjectNode prop = properties.putObject(param.getParamName());
-                    prop.put("type", ParamDataTypeSchema.jsonSchemaType(param.getParamDataType()));
+                    prop.put("type", ParamDataTypeSchema.toolType(param.getParamDataType()));
                     String schemaFormat = ParamDataTypeSchema.jsonSchemaFormat(param.getParamDataType());
                     if (schemaFormat != null) {
                         prop.put("format", schemaFormat);

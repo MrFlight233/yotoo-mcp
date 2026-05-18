@@ -38,6 +38,8 @@ public class ApiDef {
 	private String roleIds; //角色IDS
 	private Integer releaseStatus; //上架状态（0草稿；1上架）
 	private Long usedCount; //调用次数
+	/** 版本标识：latest、approval、version-1 等 */
+	private String versionType;
 
 	private List<ApiParam> apiParams; //API参数列表
 }

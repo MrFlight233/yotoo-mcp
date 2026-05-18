@@ -32,11 +32,11 @@ api:
       password: ${API_CACHE_DB_PASSWORD:jservices}
     refresh:
       enabled: ${API_CACHE_REFRESH_ENABLED:true}
-      cron: ${API_CACHE_REFRESH_CRON:0 */30 * * * *}
+      cron: ${API_CACHE_REFRESH_CRON:0 */5 * * * *}
 
 dify:
   mcp:
-    provider-id: ${DIFY_MCP_PROVIDER_ID:6ed8ff7a-0569-47c3-a568-68b19bf50cc1}
+    provider-id: ${DIFY_MCP_PROVIDER_ID:fee819d6-9eca-4c70-bbad-00a366f7bfe0}
     db:
       url: ${DIFY_MCP_DB_URL:jdbc:postgresql://192.168.31.21:5433/dify}
       username: ${DIFY_MCP_DB_USERNAME:postgres}

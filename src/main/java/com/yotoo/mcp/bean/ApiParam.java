@@ -12,9 +12,12 @@ import lombok.Data;
 public class ApiParam {
 	private Integer paramId; //参数主键
 	private Integer apiEdition; //API版本（只查询值为2的数据）
+	/** 版本标识：latest、approval、version-1 等 */
+	private String versionType;
 	private Integer apiId; //API主键
+	private String descName; //简要名称
 	private String paramName; //参数名
-	private String paramDataType; //类型（string；number；integer；boolean；array；object；date；time；datetime；）
+	private String paramDataType; //类型（string；number；integer；boolean；array；object；date；time；datetime；text；）
 	private String required; //是否必填（true；false；）
 	private String paramDescription; //参数描述
 	private String paramEnum; //枚举值（“,”间隔）

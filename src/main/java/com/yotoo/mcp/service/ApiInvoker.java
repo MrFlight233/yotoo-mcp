@@ -321,10 +321,14 @@ public class ApiInvoker {
             if (schemaPattern != null) {
                 property.put("pattern", schemaPattern);
             }
+            if (param.getDescName() != null && !param.getDescName().isBlank()) {
+                property.put("descName", param.getDescName());
+            }
             if (param.getParamDescription() != null && !param.getParamDescription().isBlank()) {
                 property.put("description", param.getParamDescription());
             }
             if (param.getParamEnum() != null && !param.getParamEnum().isBlank()) {
+                // TODO 暂时统一使用string类型，后续根据参数类型进行转换
                 List<String> enumValues = Arrays.stream(param.getParamEnum().split(","))
                         .map(String::trim)
                         .filter(value -> !value.isEmpty())
@@ -333,6 +337,8 @@ public class ApiInvoker {
                     property.put("enum", enumValues);
                 }
             }
+            int confirmation = param.getConfirmationRequired() != null && param.getConfirmationRequired().equals(1) ? 1 : 0;
+            property.put("confirmationRequired", confirmation);
             property.put("value", args.get(paramName));
             properties.put(paramName, property);
         }

@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 public class ApiDatabaseService {
     private static final String TABLE_API_DEF = "skill_api_def";
     private static final String TABLE_API_PARAM = "skill_api_param";
+    /** MCP 工具加载与调用统计仅针对该版本 */
+    private static final String VERSION_TYPE_LATEST = "latest";
 
     private static final String COL_API_ID = "api_id";
     private static final String COL_API_NAME = "api_name";
@@ -47,6 +49,7 @@ public class ApiDatabaseService {
     private static final String COL_ROLE_IDS = "role_ids";
     private static final String COL_RELEASE_STATUS = "release_status";
     private static final String COL_USED_COUNT = "used_count";
+    private static final String COL_VERSION_TYPE = "version_type";
 
     private static final String COL_PARAM_ID = "param_id";
     private static final String COL_API_EDITION = "api_edition";
@@ -83,27 +86,32 @@ public class ApiDatabaseService {
                            config_open_flag, classified_flag, summary, api_path, request_way,
                            auth_type, auth_value, reply_prompt_word, api_response, model_response,
                            create_user_id, create_time, update_time, college_id, major_id, class_id,
-                           role_ids, release_status, used_count
+                           role_ids, release_status, used_count, version_type
                     FROM %s
+                    WHERE version_type = ?
                     """.formatted(TABLE_API_DEF);
-            try (PreparedStatement statement = connection.prepareStatement(defSql);
-                 ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    apiDefs.add(mapApiDef(rs));
+            try (PreparedStatement statement = connection.prepareStatement(defSql)) {
+                statement.setString(1, VERSION_TYPE_LATEST);
+                try (ResultSet rs = statement.executeQuery()) {
+                    while (rs.next()) {
+                        apiDefs.add(mapApiDef(rs));
+                    }
                 }
             }
 
             String paramSql = """
                     SELECT param_id, api_edition, api_id, param_name, param_data_type, required,
                            param_description, param_enum, multiple_flag, system_field, test_value,
-                           confirmation_required
+                           confirmation_required, version_type
                     FROM %s
-                    WHERE api_edition = 2
+                    WHERE api_edition = 2 AND version_type = ?
                     """.formatted(TABLE_API_PARAM);
-            try (PreparedStatement statement = connection.prepareStatement(paramSql);
-                 ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    apiParams.add(mapApiParam(rs));
+            try (PreparedStatement statement = connection.prepareStatement(paramSql)) {
+                statement.setString(1, VERSION_TYPE_LATEST);
+                try (ResultSet rs = statement.executeQuery()) {
+                    while (rs.next()) {
+                        apiParams.add(mapApiParam(rs));
+                    }
                 }
             }
         }
@@ -123,10 +131,14 @@ public class ApiDatabaseService {
             return 0;
         }
 
-        String sql = "UPDATE skill_api_def SET used_count = COALESCE(used_count, 0) + 1 WHERE api_id = ?";
+        String sql = """
+                UPDATE skill_api_def SET used_count = COALESCE(used_count, 0) + 1
+                WHERE api_id = ? AND version_type = ?
+                """;
         try (Connection connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, apiId);
+            statement.setString(2, VERSION_TYPE_LATEST);
             return statement.executeUpdate();
         }
     }
@@ -164,6 +176,7 @@ public class ApiDatabaseService {
         def.setRoleIds(rs.getString(COL_ROLE_IDS));
         def.setReleaseStatus(rs.getObject(COL_RELEASE_STATUS, Integer.class));
         def.setUsedCount(rs.getObject(COL_USED_COUNT, Long.class));
+        def.setVersionType(rs.getString(COL_VERSION_TYPE));
         return def;
     }
 
@@ -181,6 +194,7 @@ public class ApiDatabaseService {
         param.setSystemField(rs.getString(COL_SYSTEM_FIELD));
         param.setTestValue(rs.getString(COL_TEST_VALUE));
         param.setConfirmationRequired(rs.getObject(COL_CONFIRMATION_REQUIRED, Integer.class));
+        param.setVersionType(rs.getString(COL_VERSION_TYPE));
         return param;
     }
 }

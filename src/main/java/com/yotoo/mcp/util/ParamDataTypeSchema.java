@@ -30,9 +30,19 @@ public final class ParamDataTypeSchema {
         }
         String t = paramDataType.trim().toLowerCase();
         return switch (t) {
-            case "string", "number", "integer", "boolean", "array", "object" -> t;
             case "date", "time", "datetime" -> "string";
-            default -> "string";
+            default -> t;
+        };
+    }
+
+    public static String toolType(String paramDataType) {
+        if (paramDataType == null || paramDataType.isBlank()) {
+            return "string";
+        }
+        String t = paramDataType.trim().toLowerCase();
+        return switch (t) {
+            case "date", "time", "datetime", "text" -> "string";
+            default -> t;
         };
     }
 
@@ -46,7 +56,8 @@ public final class ParamDataTypeSchema {
         }
         return switch (paramDataType.trim().toLowerCase()) {
             case "date" -> "date";
-            case "datetime" -> "date-time";
+            case "datetime" -> "datetime";
+            case "time" -> "time";
             default -> null;
         };
     }
@@ -76,6 +87,7 @@ public final class ParamDataTypeSchema {
         String t = paramDataType.trim().toLowerCase();
         return switch (t) {
             case "string", "number", "integer", "boolean", "array", "object" -> t;
+            case "text" -> "string";
             case "date" -> "date（" + JACKSON_DATE_PATTERN + "，" + TEMPORAL_TIMEZONE + "）";
             case "time" -> "time（" + JACKSON_TIME_PATTERN + "，" + TEMPORAL_TIMEZONE + "）";
             case "datetime" -> "datetime（" + JACKSON_DATETIME_PATTERN + "，" + TEMPORAL_TIMEZONE + "）";
